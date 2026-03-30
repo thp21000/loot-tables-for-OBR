@@ -10,7 +10,7 @@ tags:
 manifest: https://thp21000.github.io/loot-tables-for-OBR/manifest.json
 learn-more: https://github.com/thp21000/loot-tables-for-OBR/
 ---
-https://thp21000.github.io/loot-tables-for-OBR/Partage.gif
+![Partage](Partage.gif)
 An Owlbear Rodeo extension to create, edit, import, export, and roll loot tables, with support for multiple game systems.
 
 ### Features
@@ -97,7 +97,7 @@ Your support helps accelerate development and expand the available content.
 ### Usage
 
 #### Choose system
-https://thp21000.github.io/loot-tables-for-OBR/Multi.gif
+![Multi](Multi.gif)
 - Open **Settings** (gear button).
 - Use **PF2E / DND5E** buttons.
 - System switch reloads the target system tables.
@@ -105,14 +105,14 @@ https://thp21000.github.io/loot-tables-for-OBR/Multi.gif
 - Switching system does not delete anything: it simply shows the other table space.
 
 #### Create a table
-https://thp21000.github.io/loot-tables-for-OBR/Create.gif
+![Create](Create.gif)
 - Click **Create a new table**
 - Give your table a name
 - Add items row by row
 - Save the table
 
 #### Import items
-https://thp21000.github.io/loot-tables-for-OBR/Export.gif
+![Export](Export.gif)
 Two options:
 
 - import a CSV as a new table
@@ -126,7 +126,7 @@ Simple duplicates are ignored during import.
 Imported values are normalized to support heterogeneous sources (FR/EN terms, singular/plural variants for some categories).
 
 #### Roll loot
-https://thp21000.github.io/loot-tables-for-OBR/Tirage.gif
+![Tirage](Tirage.gif)
 Two options:
 
 - green **▶** button: opens full roll configuration
