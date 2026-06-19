@@ -85,7 +85,29 @@ function mergeItemsWithDuplicateFilter(
 
       seen.add(signature);
       dedupedImported.push(item);
-@@ -104,177 +111,294 @@ function mergeItemsWithDuplicateFilter(
+    }
+
+    return {
+      nextItems: dedupedImported,
+      importedCount: dedupedImported.length,
+      skippedDuplicatesCount: importedItems.length - dedupedImported.length,
+      replaced: true,
+    };
+  }
+
+  const seen = new Set(existingItems.map((item) => getItemSignature(item)));
+  const appended: LootItem[] = [];
+  let skippedDuplicatesCount = 0;
+
+  for (const item of importedItems) {
+    const signature = getItemSignature(item);
+
+    if (seen.has(signature)) {
+      skippedDuplicatesCount += 1;
+      continue;
+    }
+
+    seen.add(signature);
     appended.push(item);
   }
 
@@ -380,7 +402,12 @@ export default function App() {
     if (editingTableId === tableId) {
       setEditingTableId(null);
     }
-@@ -287,433 +411,945 @@ export default function App() {
+
+    if (rollingTableId === tableId) {
+      setRollingTableId(null);
+    }
+
+    if (lastRollTableId === tableId) {
       setLastRollTableId(null);
       setRollResult(null);
     }
