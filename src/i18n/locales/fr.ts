@@ -191,10 +191,10 @@ const fr = {
     "gain.noItem": "Aucun objet trouvé.",
     "news.title": "News & mises à jour",
     "news.intro": "Résumé des dernières évolutions de l’application :",
-    "news.item.1": "Version 0.1.85",
-    "news.item.2": "Correction de l’import JSON : les exports globaux et les exports d’une seule table sont maintenant reconnus.",
-    "news.item.3": "L’import JSON fonctionne aussi en création de nouvelle table et dans une table précise.",
-    "news.item.4": "Correction du scroll des popups : le fond ne défile plus quand une fenêtre est ouverte.",
+    "news.item.1": "Version 0.1.86",
+    "news.item.2": "Ajout de la possibilité d'importation de plusieurs tables de loot en meme temps.",
+    "news.item.3": "",
+    "news.item.4": "",
     "news.important": "Important : pensez à exporter régulièrement vos tables en JSON pour éviter toute perte locale.",
     };
   

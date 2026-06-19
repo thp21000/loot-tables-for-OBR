@@ -85,29 +85,7 @@ function mergeItemsWithDuplicateFilter(
 
       seen.add(signature);
       dedupedImported.push(item);
-    }
-
-    return {
-      nextItems: dedupedImported,
-      importedCount: dedupedImported.length,
-      skippedDuplicatesCount: importedItems.length - dedupedImported.length,
-      replaced: true,
-    };
-  }
-
-  const seen = new Set(existingItems.map((item) => getItemSignature(item)));
-  const appended: LootItem[] = [];
-  let skippedDuplicatesCount = 0;
-
-  for (const item of importedItems) {
-    const signature = getItemSignature(item);
-
-    if (seen.has(signature)) {
-      skippedDuplicatesCount += 1;
-      continue;
-    }
-
-    seen.add(signature);
+@@ -104,177 +111,294 @@ function mergeItemsWithDuplicateFilter(
     appended.push(item);
   }
 
@@ -147,8 +125,8 @@ function formatValidatedRollMessage(
   roleText: string
 ): string {
   const prefix = summary.validatedBy
-  ? `${summary.validatedBy} ${roleText}`
-  : roleText;
+    ? `${summary.validatedBy} ${roleText}`
+    : roleText;
 
   if (summary.items.length === 0) {
     return `${prefix} : aucun objet trouvé.`;
@@ -223,18 +201,22 @@ export default function App() {
 
   useEffect(() => {
     const hasSystemChanged = lastSystemForSaveRef.current !== currentSystem;
+
     if (tables.length === 0) {
       if (hasSystemChanged) {
         lastSystemForSaveRef.current = currentSystem;
         return;
       }
+
       saveTables([], currentSystem);
       lastSystemForSaveRef.current = currentSystem;
       return;
     }
+
     const targetSystem = tables[0].system;
 
     if (!tables.every((table) => table.system === targetSystem)) {
+      lastSystemForSaveRef.current = currentSystem;
       return;
     }
 
@@ -251,8 +233,8 @@ export default function App() {
 
   useEffect(() => {
     saveUIState({
-      searchTerm,
       currentSystem,
+      searchTerm,
       tableSortMode,
       expandedTableIds,
       itemSortModes,
@@ -398,12 +380,7 @@ export default function App() {
     if (editingTableId === tableId) {
       setEditingTableId(null);
     }
-
-    if (rollingTableId === tableId) {
-      setRollingTableId(null);
-    }
-
-    if (lastRollTableId === tableId) {
+@@ -287,433 +411,945 @@ export default function App() {
       setLastRollTableId(null);
       setRollResult(null);
     }
@@ -503,6 +480,7 @@ export default function App() {
   function handleCancelEdit() {
     setEditingTableId(null);
   }
+
   function importItemsIntoTable(
     tableId: string,
     importedItems: LootItem[],
@@ -551,36 +529,6 @@ export default function App() {
         : "";
 
     setAlertMessage(baseMessage + duplicateMessage);
-  }
-
-  async function handleImportCsvIntoTable(
-    tableId: string,
-    file: File,
-    mode: ImportMode
-  ) {
-    try {
-      const importedItemsForSystem = await importItemsFromCsvFile(file, currentSystem);
-      importItemsIntoTable(tableId, importedItemsForSystem, mode);
-    } catch (error) {
-      console.error(error);
-      setAlertMessage(t("app.importCsvFailed"));
-    }
-  }
-
-  async function handleImportJsonIntoTable(
-    tableId: string,
-    file: File,
-    mode: ImportMode
-  ) {
-    const importedTables = await importTablesFromFile(file);
-    const importedItems = importedTables.flatMap((table) => table.items);
-
-    if (importedItems.length === 0) {
-      setAlertMessage(t("app.importNoTableInJson"));
-      return;
-    }
-
-    importItemsIntoTable(tableId, importedItems, mode);
   }
 
   function handleCloseRollDialog() {
@@ -709,15 +657,15 @@ export default function App() {
   }
 
   async function handleTransferFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files ?? []);
 
-    if (!file) {
+    if (files.length === 0) {
       return;
     }
 
     try {
       if (transferFormat === "json" && transferScope === "global") {
-        const importedTables = await importTablesFromFile(file);
+        const importedTables = (await Promise.all(files.map((file) => importTablesFromFile(file)))).flat();
         const importedTablesForSystem = importedTables.map((table) => ({
           ...table,
           system: currentSystem,
@@ -730,37 +678,52 @@ export default function App() {
         setTables(mergedTables);
         setAlertMessage(t("app.importTablesSuccess", { count: importedTables.length }));
       } else if (transferFormat === "json" && transferScope === "new-table") {
-        const importedTables = await importTablesFromFile(file);
-        const firstImportedTable = importedTables[0];
+        const importedTables = (await Promise.all(files.map((file) => importTablesFromFile(file)))).flat();
 
-        if (!firstImportedTable) {
+        if (importedTables.length === 0) {
           setAlertMessage(t("app.importNoTableInJson"));
           return;
         }
 
         const now = new Date().toISOString();
-        const newTable: LootTable = {
-          ...firstImportedTable,
+        const newTables: LootTable[] = importedTables.map((table) => ({
+          ...table,
           system: currentSystem,
           id: crypto.randomUUID(),
-          items: firstImportedTable.items.map((item) => ({
+          items: table.items.map((item) => ({
             ...item,
             type: item.type ?? "Aucun",
           })),
           createdAt: now,
           updatedAt: now,
-        };
+        }));
 
-        setTables((prev) => [...prev, newTable]);
-        setAlertMessage(t("app.importNewTableFromJson", { name: newTable.name }));
+        setTables((prev) => [...prev, ...newTables]);
+        setAlertMessage(
+          newTables.length === 1
+            ? t("app.importNewTableFromJson", { name: newTables[0].name })
+            : t("app.importTablesSuccess", { count: newTables.length })
+        );
       } else if (transferFormat === "csv" && transferScope === "global") {
-        const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
-        setTables((prev) => [...prev, importedTable]);
-        setAlertMessage(t("app.importCsvTable", { name: importedTable.name }));
+        const importedTables = await Promise.all(
+          files.map((file) => importSingleTableFromCsv(file, undefined, currentSystem))
+        );
+        setTables((prev) => [...prev, ...importedTables]);
+        setAlertMessage(
+          importedTables.length === 1
+            ? t("app.importCsvTable", { name: importedTables[0].name })
+            : t("app.importTablesSuccess", { count: importedTables.length })
+        );
       } else if (transferFormat === "csv" && transferScope === "new-table") {
-        const importedTable = await importSingleTableFromCsv(file, undefined, currentSystem);
-        setTables((prev) => [...prev, importedTable]);
-        setAlertMessage(t("app.importNewTableFromCsv", { name: importedTable.name }));
+        const importedTables = await Promise.all(
+          files.map((file) => importSingleTableFromCsv(file, undefined, currentSystem))
+        );
+        setTables((prev) => [...prev, ...importedTables]);
+        setAlertMessage(
+          importedTables.length === 1
+            ? t("app.importNewTableFromCsv", { name: importedTables[0].name })
+            : t("app.importTablesSuccess", { count: importedTables.length })
+        );
       } else if (transferScope === "table") {
         if (!transferTableId) {
           setAlertMessage(t("app.targetTableRequiredImport"));
@@ -768,9 +731,20 @@ export default function App() {
         }
 
         if (transferFormat === "json") {
-          await handleImportJsonIntoTable(transferTableId, file, transferImportMode);
+          const importedTables = (await Promise.all(files.map((file) => importTablesFromFile(file)))).flat();
+          const importedItems = importedTables.flatMap((table) => table.items);
+
+          if (importedItems.length === 0) {
+            setAlertMessage(t("app.importNoTableInJson"));
+            return;
+          }
+
+          importItemsIntoTable(transferTableId, importedItems, transferImportMode);
         } else {
-          await handleImportCsvIntoTable(transferTableId, file, transferImportMode);
+          const importedItems = (
+            await Promise.all(files.map((file) => importItemsFromCsvFile(file, currentSystem)))
+          ).flat();
+          importItemsIntoTable(transferTableId, importedItems, transferImportMode);
         }
       } else {
         setAlertMessage(t("app.transfer.unavailable"));
@@ -870,7 +844,7 @@ export default function App() {
           background: colors.pageBg,
         }}
       >
-      <div
+          <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
@@ -896,16 +870,16 @@ export default function App() {
           <h1 style={{ ...typography.pageTitle, marginBottom: "4px" }}>{t("app.title")}</h1>
 
           <p style={{ ...typography.pageSubtitle, marginBottom: "14px" }}>
-          {t("app.subtitle")} ({tables.length})
+            {t("app.subtitle")} ({tables.length})
           </p>
 
           {canManageTables ? (
             <div style={{ ...layout.topBar, marginBottom: "14px" }}>
               <button onClick={handleCreateTable} style={buttons.primary}>
-              {t("app.createTable")}
+                {t("app.createTable")}
               </button>
               <button onClick={openTransferModal} style={buttons.secondary}>
-              {t("app.transfer")}
+                {t("app.transfer")}
               </button>
             </div>
           ) : null}
@@ -913,11 +887,12 @@ export default function App() {
           <input
             ref={transferFileInputRef}
             type="file"
+            multiple
             onChange={handleTransferFileChange}
             style={{ display: "none" }}
           />
 
-<div style={{ width: "fit-content", maxWidth: "100%" }}>
+          <div style={{ width: "fit-content", maxWidth: "100%" }}>
             <TableList
               key={`table-list-${language}-${currentSystem}`}
               tables={tables}
@@ -996,17 +971,17 @@ export default function App() {
                 ) : null}
                 {roomState.lastValidatedRoll ? (
                   <span>
-                  {t("footer.lastGain", {
-                    tableName: roomState.lastValidatedRoll.tableName,
-                  })}
-                </span>
+                    {t("footer.lastGain", {
+                      tableName: roomState.lastValidatedRoll.tableName,
+                    })}
+                  </span>
                 ) : null}
               </div>
             </div>
           </div>
         </div>
-      
-        <Modal
+
+          <Modal
         isOpen={isSettingsModalOpen}
         title={t("app.settings.title")}
         onClose={closeSettingsModal}
@@ -1016,7 +991,7 @@ export default function App() {
           </button>
         }
       >
-        <div style={{ display: "grid", gap: "14px" }}>
+            <div style={{ display: "grid", gap: "14px" }}>
           {canManageTables ? (
             <div>
               <p style={{ ...typography.label, marginBottom: "8px" }}>
@@ -1068,10 +1043,10 @@ export default function App() {
             </div>
           ) : null}
 
-          <div>
-            <p style={{ ...typography.label, marginBottom: "8px" }}>
-              {t("app.settings.language")}
-            </p>
+              <div>
+                <p style={{ ...typography.label, marginBottom: "8px" }}>
+                  {t("app.settings.language")}
+                </p>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <button
                 type="button"
@@ -1122,7 +1097,7 @@ export default function App() {
                 />
                 <span>{t("lang.en")}</span>
               </button>
-              </div>
+                </div>
               </div>
 
               <div>
@@ -1215,12 +1190,12 @@ export default function App() {
         footer={
           <>
             <button onClick={handleExecuteTransfer} style={buttons.primary}>
-            {transferAction === "import"
+              {transferAction === "import"
                 ? t("app.transfer.chooseFile")
                 : t("app.transfer.download")}
             </button>
             <button onClick={closeTransferModal} style={buttons.secondary}>
-            {t("common.cancel")}
+              {t("common.cancel")}
             </button>
           </>
         }
