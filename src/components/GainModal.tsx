@@ -1,6 +1,8 @@
 import Modal from "./Modal";
 import type { OwlbearPlayerRole, ValidatedRollSummary } from "../types";
 import { buttons, colors, radius } from "../styles/ui";
+import { useI18n } from "../i18n";
+import { tCategory, tCurrency, tRarity } from "../i18n/gameTerms";
 
 type GainModalProps = {
   isOpen: boolean;
@@ -27,11 +29,30 @@ export default function GainModal({
   onClose,
   playerRole,
 }: GainModalProps) {
+  const { t, language } = useI18n();
+
   if (!isOpen || !summary) {
     return null;
   }
 
-  const title = playerRole === "GM" ? "Tirage validé" : "Butin trouvé";
+  const isFrench = language === "fr";
+  const title = playerRole === "GM" ? t("gain.shared") : t("gain.discovered");
+  const sharingMessage =
+    playerRole === "GM"
+      ? summary.validatedBy
+        ? isFrench
+          ? `Tu as partagé ce tirage en tant que ${summary.validatedBy}`
+          : `You shared this roll as ${summary.validatedBy}`
+        : isFrench
+          ? "Tu as partagé ce tirage"
+          : "You shared this roll"
+      : summary.validatedBy
+        ? isFrench
+          ? `${summary.validatedBy} a validé ce tirage`
+          : `${summary.validatedBy} validated this roll`
+        : isFrench
+          ? "Un tirage a été validé"
+          : "A roll was validated";
 
   return (
     <Modal
@@ -40,7 +61,7 @@ export default function GainModal({
       onClose={onClose}
       footer={
         <button onClick={onClose} style={buttons.primary}>
-          Fermer
+          {t("common.close")}
         </button>
       }
     >
@@ -50,16 +71,12 @@ export default function GainModal({
             {summary.tableName}
           </div>
           <div style={{ color: colors.textMuted, marginTop: "6px" }}>
-            {playerRole === "GM"
-              ? summary.validatedBy
-                ? `Tu as partagé ce tirage en tant que ${summary.validatedBy}`
-                : "Tu as partagé ce tirage"
-              : summary.validatedBy
-              ? `${summary.validatedBy} a validé ce tirage`
-              : "Un tirage a été validé"}
+            {sharingMessage}
           </div>
           <div style={{ color: colors.textMuted, marginTop: "4px" }}>
-            {new Date(summary.validatedAt).toLocaleString()}
+            {new Date(summary.validatedAt).toLocaleString(
+              language === "fr" ? "fr-FR" : "en-GB"
+            )}
           </div>
         </div>
 
@@ -74,7 +91,7 @@ export default function GainModal({
               background: colors.panelBg,
             }}
           >
-            Aucun objet trouvé.
+            {t("gain.noItem")}
           </div>
         ) : (
           <div style={{ display: "grid", gap: "10px" }}>
@@ -99,7 +116,7 @@ export default function GainModal({
                 >
                   <div style={{ fontWeight: 700 }}>{item.name}</div>
                   <div style={{ color: colors.textMuted }}>
-                    {item.valueAmount} {item.valueCurrency}
+                    {item.valueAmount} {tCurrency(item.valueCurrency, language)}
                   </div>
                 </div>
 
@@ -112,15 +129,17 @@ export default function GainModal({
                     color: colors.textSoft,
                   }}
                 >
-                  <span>Niveau {item.level}</span>
-                  <span>{item.category}</span>
+                  <span>
+                    {t("column.level")} {item.level}
+                  </span>
+                  <span>{tCategory(item.category, language)}</span>
                   <span
                     style={{
                       color: getRarityColor(item.rarity),
                       fontWeight: 700,
                     }}
                   >
-                    {item.rarity}
+                    {tRarity(item.rarity, language)}
                   </span>
                 </div>
               </div>
