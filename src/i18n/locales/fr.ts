@@ -191,10 +191,10 @@ const fr = {
     "gain.noItem": "Aucun objet trouvé.",
     "news.title": "News & mises à jour",
     "news.intro": "Résumé des dernières évolutions de l’application :",
-    "news.item.1": "Version 0.1.86",
-    "news.item.2": "Ajout de la possibilité d'importation de plusieurs tables de loot en meme temps.",
-    "news.item.3": "",
-    "news.item.4": "",
+    "news.item.1": "Version 0.1.90",
+    "news.item.2": "Amélioration du partage des tirages validés entre le MJ et les joueurs dans Owlbear Rodeo.",
+    "news.item.3": "Correction de la langue des notifications et des fenêtres de butin partagé : elles respectent maintenant le réglage FR / EN de chaque utilisateur.",
+    "news.item.4": "Optimisation de l’intégration Owlbear Rodeo pour rendre le partage des résultats plus fiable et plus léger.",
     "news.important": "Important : pensez à exporter régulièrement vos tables en JSON pour éviter toute perte locale.",
     };
   

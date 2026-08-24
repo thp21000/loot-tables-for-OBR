@@ -191,10 +191,10 @@ const en = {
     "gain.noItem": "No item found.",
     "news.title": "News & updates",
     "news.intro": "Summary of the latest application changes:",
-    "news.item.1": "Version 0.1.86",
-    "news.item.2": "Added the ability to import multiple loot tables at the same time.",
-    "news.item.3": "",
-    "news.item.4": "",
+    "news.item.1": "Version 0.1.90",
+    "news.item.2": "Improved sharing of validated rolls between the GM and players in Owlbear Rodeo.",
+    "news.item.3": "Fixed notification and shared loot window language: they now follow each user's FR / EN setting.",
+    "news.item.4": "Optimized the Owlbear Rodeo integration to make result sharing more reliable and lightweight.",
     "news.important": "Important: export your tables to JSON regularly to prevent local data loss.",
   };
   
