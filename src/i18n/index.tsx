@@ -36,6 +36,12 @@ function interpolate(
 }
 
 function getInitialLanguage(): Language {
+  const requestedLanguage = new URLSearchParams(window.location.search).get("lang");
+
+  if (requestedLanguage === "fr" || requestedLanguage === "en") {
+    return requestedLanguage;
+  }
+
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved === "fr" || saved === "en") {
     return saved;
