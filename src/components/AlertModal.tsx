@@ -9,6 +9,11 @@ type AlertModalProps = {
   onClose: () => void;
 };
 
+const REDUNDANT_SHARED_ROLL_MESSAGES = new Set([
+  "Tirage validé et partagé à tous.",
+  "Roll validated and shared with everyone.",
+]);
+
 export default function AlertModal({
   isOpen,
   title,
@@ -16,6 +21,18 @@ export default function AlertModal({
   buttonLabel = "OK",
   onClose,
 }: AlertModalProps) {
+  const normalizedMessage = message.trim();
+
+  // The shared-loot modal already confirms a validated roll, so avoid
+  // stacking an additional generic information modal for the same action.
+  if (
+    !isOpen ||
+    !normalizedMessage ||
+    REDUNDANT_SHARED_ROLL_MESSAGES.has(normalizedMessage)
+  ) {
+    return null;
+  }
+
   return (
     <Modal
       isOpen={isOpen}
