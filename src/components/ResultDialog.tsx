@@ -10,7 +10,7 @@ type ResultDialogProps = {
   history: RollResult[];
   onClose: () => void;
   onReroll: () => void;
-  onValidate: () => void;
+  onValidate: () => void | Promise<void>;
   onShowAlert: (message: string) => void;
   playerRole: OwlbearPlayerRole;
 };
@@ -102,6 +102,12 @@ export default function ResultDialog({
       console.error(error);
       onShowAlert(t("result.copyError"));
     }
+  }
+
+  async function handleValidateAndClose() {
+    const validation = onValidate();
+    onClose();
+    await validation;
   }
 
   useEffect(() => {
@@ -270,7 +276,12 @@ export default function ResultDialog({
         >
           {playerRole === "GM" ? (
             <>
-              <button onClick={onValidate} style={buttons.primary}>
+              <button
+                onClick={() => {
+                  void handleValidateAndClose();
+                }}
+                style={buttons.primary}
+              >
               {t("result.validate")}
               </button>
               <button onClick={onReroll} style={buttons.secondary}>
