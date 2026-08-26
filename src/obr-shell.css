@@ -7,6 +7,12 @@ body,
   box-sizing: border-box;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
@@ -14,8 +20,8 @@ body {
 }
 
 /* The Owlbear action itself is the only scroll container.
-   This keeps both scrollbars attached to the main window instead of
-   creating horizontal scroll areas at the bottom of individual sections. */
+   The main list does not need horizontal scrolling, while expanded previews
+   and the table editor can opt into it through :has() below. */
 html[data-view="main-popover"] {
   height: 100%;
   overflow: hidden;
@@ -24,8 +30,17 @@ html[data-view="main-popover"] {
 body[data-view="main-popover"] {
   width: 100%;
   height: 100svh;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: #111214;
+}
+
+/* Expanded table previews still carry their original overflow-x declaration.
+   The declaration itself is used only as a marker; the actual scrollbar is
+   attached to the Owlbear window. */
+body[data-view="main-popover"]:has([style*="overflow-x: auto"]),
+body[data-view="main-popover"]:has([style*="padding-bottom: 112px"]) {
+  overflow-x: auto;
 }
 
 body[data-view="gain-modal"] {
@@ -37,10 +52,19 @@ body[data-view="gain-modal"] {
   overflow: visible;
 }
 
-/* Keep the React application constrained to the fixed Owlbear action width,
-   while allowing wide editor/table rows to contribute to the body's
-   horizontal scroll area. */
+/* Keep a small, symmetrical gutter around the whole application. */
 #root[data-view="main-popover"] > div {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding-left: 22px !important;
+  padding-right: 22px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+#root[data-view="main-popover"] > div > div:first-child {
+  position: relative;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
@@ -48,12 +72,24 @@ body[data-view="gain-modal"] {
   box-sizing: border-box !important;
 }
 
-#root[data-view="main-popover"] > div > div:first-child {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  overflow: visible !important;
-  box-sizing: border-box !important;
+/* Put Settings on the same line as the title. The left padding on the title
+   mirrors the button area so the title remains visually centered. */
+#root[data-view="main-popover"] > div > div:first-child > div:first-child {
+  position: absolute !important;
+  top: 0;
+  right: 0;
+  margin: 0 !important;
+  z-index: 20;
+}
+
+#root[data-view="main-popover"] > div > div:first-child > h1 {
+  min-height: 44px;
+  padding-left: 56px;
+  padding-right: 56px;
+  margin-bottom: 4px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* The table/list area uses the available window width on the main page. */
