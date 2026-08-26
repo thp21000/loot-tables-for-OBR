@@ -13,9 +13,19 @@ body {
   background: #111214;
 }
 
+/* The Owlbear action itself is the only scroll container.
+   This keeps both scrollbars attached to the main window instead of
+   creating horizontal scroll areas at the bottom of individual sections. */
+html[data-view="main-popover"] {
+  height: 100%;
+  overflow: hidden;
+}
+
 body[data-view="main-popover"] {
-  overflow-x: hidden;
-  overflow-y: auto;
+  width: 100%;
+  height: 100svh;
+  overflow: auto;
+  background: #111214;
 }
 
 body[data-view="gain-modal"] {
@@ -23,37 +33,36 @@ body[data-view="gain-modal"] {
 }
 
 #root[data-view="main-popover"] {
-  min-height: 100svh;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: visible;
 }
 
-/* Keep the React application constrained to the fixed Owlbear action width. */
+/* Keep the React application constrained to the fixed Owlbear action width,
+   while allowing wide editor/table rows to contribute to the body's
+   horizontal scroll area. */
 #root[data-view="main-popover"] > div {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   box-sizing: border-box !important;
 }
 
-/* App.tsx currently uses max-content for its main content wrapper.
-   Override that only at the shell level so wide tables scroll inside the
-   fixed popover instead of making the action itself appear wider. */
 #root[data-view="main-popover"] > div > div:first-child {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
+  overflow: visible !important;
   box-sizing: border-box !important;
 }
 
-/* The table/list area should use the available window width on the main page. */
+/* The table/list area uses the available window width on the main page. */
 #root[data-view="main-popover"] > div > div:first-child > div:last-child {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
   margin-inline: auto !important;
+  overflow: visible !important;
   box-sizing: border-box !important;
 }
 
@@ -62,7 +71,26 @@ body[data-view="gain-modal"] {
   min-width: 0 !important;
   max-width: 100% !important;
   margin-inline: auto !important;
+  overflow: visible !important;
   box-sizing: border-box !important;
+}
+
+/* Some table preview blocks still declare their own horizontal overflow
+   inline. Let their wide content overflow to the main Owlbear window instead. */
+#root[data-view="main-popover"] [style*="overflow-x: auto"] {
+  overflow-x: visible !important;
+}
+
+/* TableEditor action cells are the final cell of grid rows. Keep their
+   controls on one horizontal line so a row does not become unnecessarily tall. */
+#root[data-view="main-popover"] div[style*="display: grid"] > div:last-child:has(> button) {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: max-content !important;
 }
 
 #root[data-view="gain-modal"] {
