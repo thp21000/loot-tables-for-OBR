@@ -4,6 +4,7 @@ import App from "./App";
 import SharedGainPage from "./components/SharedGainPage";
 import { configureOwlbearAction, waitForOwlbearReady } from "./owlbear";
 import { I18nProvider } from "./i18n";
+import "./obr-shell.css";
 
 async function bootstrap() {
   const params = new URLSearchParams(window.location.search);
