@@ -191,10 +191,10 @@ const fr = {
     "gain.noItem": "Aucun objet trouvé.",
     "news.title": "News & mises à jour",
     "news.intro": "Résumé des dernières évolutions de l’application :",
-    "news.item.1": "Version 0.1.90",
-    "news.item.2": "Amélioration du partage des tirages validés entre le MJ et les joueurs dans Owlbear Rodeo.",
-    "news.item.3": "Correction de la langue des notifications et des fenêtres de butin partagé : elles respectent maintenant le réglage FR / EN de chaque utilisateur.",
-    "news.item.4": "Optimisation de l’intégration Owlbear Rodeo pour rendre le partage des résultats plus fiable et plus léger.",
+    "news.item.1": "Version 0.2.00",
+    "news.item.2": "Loot Tables est désormais officiellement disponible dans le store des extensions Owlbear Rodeo.",
+    "news.item.3": "Le flux de validation des tirages a été simplifié : moins de fenêtres intermédiaires et fermeture automatique du résultat après validation.",
+    "news.item.4": "Interface Owlbear stabilisée : taille du popover fixe, défilements intégrés au design et vues aperçu/édition mieux adaptées à la largeur disponible.",
     "news.important": "Important : pensez à exporter régulièrement vos tables en JSON pour éviter toute perte locale.",
     };
   
