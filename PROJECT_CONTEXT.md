@@ -2,548 +2,377 @@
 
 ## Projet
 - Nom : Loot Tables for Owlbear
-- Type : Extension Owlbear Rodeo (frontend web + manifest Owlbear + déploiement GitLab Pages)
-- Objectif : Permettre au MJ de créer, modifier, importer, exporter et lancer des tables de loot, puis de valider un tirage pour partager les gains à tous les participants d’une room Owlbear.
+- Version actuelle : **0.2.00**
+- Type : extension Owlbear Rodeo, frontend React/TypeScript/Vite hébergé sur GitHub Pages
+- Dépôt principal : `thp21000/loot-tables-for-OBR`
+- Hébergement : `https://thp21000.github.io/loot-tables-for-OBR/`
+- Manifest public : `https://thp21000.github.io/loot-tables-for-OBR/manifest.json`
+- Fiche store : `public/store.md`
+- Clé dans le store Owlbear : `loot-tables`
+- Statut store : **officiellement publié dans le store des extensions Owlbear Rodeo**. La PR `owlbear-rodeo/extensions#139` a été fusionnée le 2026-08-26.
 
-## Stack
-- Front : React + TypeScript + Vite
-- Back : Aucun back dédié
-- BDD : Aucune BDD serveur ; stockage principal local navigateur pour les tables
-- Outils / infra :
-  - Git + GitLab
-  - GitLab Pages pour l’hébergement public
-  - Owlbear Rodeo Extension SDK (`@owlbear-rodeo/sdk`)
-  - Manifest Owlbear servi publiquement
+## Objectif
+Permettre au MJ de créer, modifier, importer, exporter et lancer des tables de loot dans Owlbear Rodeo, avec prise en charge PF2E et DnD 5e, puis de valider un tirage afin de partager le butin avec les autres participants de la room.
 
-## Décisions validées
-- Les tables de loot restent stockées localement dans le navigateur, pas dans les metadata de room Owlbear.
-- Il faut documenter clairement qu’il faut faire des sauvegardes/export JSON réguliers.
-- Les résultats validés, eux, sont partagés via Owlbear (room metadata + broadcast + notification + modale Owlbear).
-- Le MJ a l’interface complète de gestion ; les joueurs ont une interface de consultation/réception.
-- Toujours travailler par patches incrémentaux, sans refonte inutile.
-- Toujours fournir les fichiers complets patchés quand on modifie du code.
+## Stack et infrastructure
+- React + TypeScript + Vite
+- Owlbear Rodeo SDK : `@owlbear-rodeo/sdk`
+- Pas de backend dédié
+- Pas de base de données serveur
+- Tables enregistrées dans le stockage local du navigateur
+- Déploiement automatique GitHub Pages via `.github/workflows/deploy.yml`
+- Site et manifest servis depuis GitHub Pages
 
-## État actuel
-- Ce qui fonctionne :
-  - Extension Owlbear installable via manifest public GitLab Pages
-  - Création / édition / suppression / duplication de tables
-  - Gestion d’objets avec nom, lien, niveau, catégorie, rareté, valeur
-  - Import/export JSON
-  - Import JSON global depuis un export complet ou depuis un export JSON d’une table seule
-  - Import JSON en nouvelle table depuis un export JSON généré par l’addon
-  - Import JSON dans une table précise avec choix ajouter/remplacer
-  - Import/export CSV par table
-  - Import CSV dans une table existante avec choix ajouter/remplacer
-  - Collage multiple depuis Excel
-  - Détection de doublons simples à l’import
-  - Recherche / tri des tables
-  - Tri des objets dans une table
-  - Tables repliables/dépliables
-  - Tirage configurable
-  - Tirage rapide avec mémorisation des derniers paramètres
-  - Mémorisation locale de plusieurs états d’interface
-  - Intégration Owlbear SDK minimale fonctionnelle
-  - Différenciation MJ / joueurs
-  - Validation d’un tirage par le MJ
-  - Notification Owlbear à tous lors d’un tirage validé
-  - Vraie modale Owlbear de gain chez tous les clients
-  - Popover principal Owlbear redimensionné dynamiquement selon la largeur réelle du contenu utile
-  - Marges latérales du popover principal rééquilibrées pour éviter que le contenu colle au bord droit
-  - Barre recherche/tri, cartes de tables et footer secondaire alignés sur une largeur utile commune
-  - Footer secondaire restructuré sur deux lignes pour mieux tenir dans le popover
-  - Boutons de lancement rapide / lancer déplacés dans la ligne d’actions principale des tables
-  - Support multi-systèmes avec séparation des données PF2E / DND5E
-  - Fenêtre Paramètres (bouton engrenage) pour centraliser les préférences d’affichage
-  - Sélecteur de système déplacé dans la fenêtre Paramètres
-  - Sélecteur de langue FR/EN avec provider i18n global
-  - Boutons de langue avec vraies icônes de drapeau (assets SVG)
-  - Mapping des termes de jeu (catégories/raretés/types) selon la langue affichée
-  - Type d’objet disponible sur les items (notamment utile pour DND5E)
-  - Modal unique d’import/export (JSON/CSV) pour centraliser les transferts de fichiers
-  - Formats CSV adaptés selon le système (PF2E avec niveau, DND5E avec type)
-  - Ajout de nouvelles raretés/catégories compatibles PF2E et DND5E
-  - Ajout de la devise `pe` (pièce d’électrum)
-  - Roll avancé avec bornes min/max (niveau, quantité, valeur en cuivre) et modes de probabilité étendus
-  - Bornes de roll automatiquement dérivées de la table + saisie manuelle inline des min/max
-  - En mode édition de table : barre d’actions flottante (Enregistrer/Annuler) visible pendant le scroll
-  - Bouton “remonter en haut” dans la même zone flottante de l’éditeur
-  - Traduction automatique des devises selon système/langue (ex. EN: cp/sp/ep/gp/pp)
-  - Liste des devises filtrée par système (PF2E sans `pe`/`ep`, DND5E avec `pe`/`ep`)
-  - Import/collage CSV/JSON tolérant les termes FR/EN pour catégorie/rareté/type
-  - Normalisation des catégories arme/armure vers les formes plurielles (`Armes`, `Armures`)
-  - Collage multiple depuis Excel tolérant tabulation, `;` et `,`
-  - Pondération des modes de probabilité DND5E corrigée pour respecter le sens bas/haut des raretés
-- Ce qui est en cours :
+## Décisions techniques validées
+- Les tables de loot restent stockées **localement dans le navigateur**.
+- Ne pas stocker les tables complètes dans les metadata Owlbear.
+- Les exports JSON/CSV restent la méthode de sauvegarde utilisateur ; le README doit continuer à recommander des exports JSON réguliers.
+- Les tirages validés sont des messages éphémères et utilisent **`OBR.broadcast`**, pas les room metadata.
+- L’état nécessaire à l’ouverture de la modale de gain est stocké localement par navigateur et par room.
+- Flux actuel de partage :
+  - MJ lance un tirage ;
+  - MJ clique sur Valider ;
+  - la fenêtre de résultat se ferme ;
+  - le MJ ouvre localement la modale `Butin partagé` ;
+  - le résultat est envoyé aux autres clients via `OBR.broadcast` avec destination `REMOTE` ;
+  - chaque client affiche la modale dans sa propre langue.
+- MJ : gestion complète des tables, tirages et validation.
+- Joueur : consultation/réception, sans actions de gestion.
+- Les gains partagés utilisent une vraie modale Owlbear dédiée.
+- Les correctifs doivent rester incrémentaux et localisés ; éviter les refontes inutiles.
 
-- Ce qui est en cours :
-  - Relecture UX des traductions FR/EN et homogénéisation terminologique (notamment termes importés EN→FR)
-  - Validation terrain du roll avancé (bornes automatiques, sliders, champs manuels)
+## État actuel fonctionnel
+L’extension est fonctionnelle, déployée et publiée dans le store Owlbear.
 
-- Ce qui bloque :
-  - Le popover Owlbear reste dépendant des limites de rendu de la plateforme ; même avec redimensionnement dynamique, le comportement réel doit encore être validé dans Owlbear sur plusieurs cas d’usage.
-  - La migration/lisibilité des anciens exports hétérogènes (avant séparation PF2E/DND5E) nécessite encore des tests utilisateurs réels, malgré la nouvelle couche de normalisation.
+### Tables
+- Création, modification, suppression et duplication de tables
+- Recherche et tri des tables
+- Tables repliables/dépliables
+- Tri des objets dans une table
+- Édition ligne par ligne des objets
+- Actions de ligne horizontales dans l’éditeur
+- Barre flottante Enregistrer / Annuler / Remonter en haut
 
-## Architecture du projet
-- `public/manifest.json`
-  - Déclare l’extension Owlbear
-  - Pointe vers `/` comme popover principal
-  - Pointe vers `/icon.svg`
-- `public/icon.svg`
-  - Icône de l’extension
-- `src/main.tsx`
-  - Point d’entrée
-  - Détecte `?view=gain-modal` pour rendre une vue dédiée à la modale Owlbear des gains
-  - Pose un `data-view` sur `body`, `html` et `#root` pour distinguer popover principal et modale de gain
-  - Sinon rend l’application principale
-- `src/App.tsx`
-  - UI principale de l’extension
-  - Gère tables, imports/exports unifiés, tirages, validation, rôle MJ/joueur, footer secondaire, état Owlbear
-  - Gère le système courant (PF2E / DND5E) et charge les données associées
-  - Gère la langue courante (FR/EN) et l’intégration des textes localisés
-  - Expose une modal Paramètres (engrenage en haut à droite) pour système/langue
-  - Mesure la largeur réelle du contenu principal pour redimensionner le popover Owlbear
-- `src/owlbear.ts`
-  - Couche utilitaire Owlbear SDK
-  - `waitForOwlbearReady`
-  - configuration du popover principal
-  - redimensionnement dynamique de la largeur du popover principal
-  - lecture rôle / room / player name
-  - room metadata
-  - notifications
-  - broadcast des tirages validés
-  - ouverture/fermeture de la modale Owlbear de gain
-- `src/components/TableList.tsx`
-  - Affichage des tables
-  - Actions MJ seulement
-  - Affichage des objets en consultation
-  - Porte l’essentiel du dernier chantier de layout (largeurs partagées, densité des blocs, grille d’objets, alignements)
-- `src/components/TableEditor.tsx`
-  - Édition d’une table
-  - Lignes d’objets validables individuellement
-  - Import CSV dans table
-  - Collage multiple Excel
-  - Barre d’actions flottante (save/cancel) et bouton de remontée rapide en haut
-- `src/components/RollDialog.tsx`
-  - Paramétrage avancé d’un tirage (bornes min/max niveau, quantité, valeur en cuivre)
-  - Sliders + saisie manuelle synchronisée des bornes
-  - Modes de probabilité étendus
-- `src/components/ResultDialog.tsx`
-  - Résultat du tirage pour le MJ
-  - Validation du tirage
-  - Historique local récent
-- `src/components/SharedGainPage.tsx`
-  - Vue dédiée affichée dans la vraie modale Owlbear
-  - Lit `lastValidatedRoll` dans les metadata de room
-  - Affichage différent MJ / joueur
-- `src/utils/storage.ts`
-  - Stockage local tables + état UI
-  - Import/export JSON/CSV
-  - Clés de stockage distinctes par système (PF2E / DND5E)
-  - Adaptation du format CSV selon le système de la table
-  - Normalisation des entrées FR/EN (catégorie, rareté, type, devise) au chargement et à l’import
-- `src/utils/loot.ts`
-  - Logique de tirage, probabilités, catégories disponibles
-  - Application des filtres min/max niveau, quantité, valeur (cuivre)
-- `src/i18n/index.tsx`
-  - Provider i18n, gestion de la locale active et hook `useI18n`
-- `src/i18n/locales/fr.ts` / `src/i18n/locales/en.ts`
-  - Dictionnaires de traductions de l’interface
-- `src/i18n/gameTerms.ts`
-  - Mapping localisé des termes de jeu selon système/langue
-  - Mapping de devise selon langue + options de devises autorisées selon système
-- `src/assets/flag-fr.svg` / `src/assets/flag-gb.svg`
-  - Icônes de drapeau utilisées dans la modal Paramètres
+### Données d’objet
+- Nom
+- URL de fiche
+- Niveau pour PF2E
+- Catégorie
+- Magique pour PF2E
+- Type pour DnD 5e
+- Rareté
+- Montant + devise
 
-## Bug(s) ou problème(s) connu(s)
-- La base technique largeur / scroll / fond du popover principal a été largement stabilisée, mais un dernier polish visuel reste nécessaire selon le rendu réel dans Owlbear.
-- Le redimensionnement dynamique du popover dépend encore du comportement effectif de la plateforme Owlbear ; il faut continuer à valider le rendu réel après chaque micro-ajustement.
-- Le footer secondaire et certaines zones d’actions ont été densifiés récemment ; les prochaines retouches doivent rester locales pour éviter de casser les alignements déjà obtenus.
+### Systèmes
+- PF2E
+- DnD 5e
+- Stockage séparé par système
+- Formats CSV adaptés au système
+- Devises adaptées au système : PF2E sans `pe/ep`, DnD 5e avec électrum
 
-## Fonctionnalités
-### Déjà faites
-- [x] Déploiement GitLab Pages public
-- [x] Manifest Owlbear fonctionnel
-- [x] Icône d’extension
-- [x] Création / édition / suppression de tables
-- [x] Duplication de table
-- [x] Lignes d’objets modifiables individuellement
-- [x] Catégories prédéfinies
-- [x] Raretés prédéfinies
-- [x] Valeur avec montant + devise
-- [x] Tri des tables
-- [x] Recherche de table
-- [x] Tri des objets dans une table ouverte
-- [x] Tables repliables/dépliables
-- [x] Import/export JSON global
-- [x] Export JSON par table
-- [x] Export CSV par table
-- [x] Support multi-systèmes PF2E / DND5E
-- [x] Stockage local séparé par système
-- [x] Internationalisation FR/EN (sélecteur de langue + provider i18n)
-- [x] Fenêtre Paramètres (engrenage) pour regrouper système + langue
-- [x] Boutons de langue avec drapeaux SVG (FR/EN)
-- [x] Mapping localisé des termes de jeu (catégories/raretés/types)
-- [x] Traduction automatique des devises selon langue (FR/EN)
-- [x] Filtrage des devises par système (PF2E sans pe/ep)
-- [x] Champs item étendus (type) pour couvrir DND5E
-- [x] Import CSV en nouvelle table
-- [x] Import JSON global compatible avec exports complets et exports d’une table seule
-- [x] Import JSON en nouvelle table
-- [x] Import JSON dans une table existante avec choix ajouter/remplacer
-- [x] Import CSV dans une table existante
-- [x] Choix ajouter/remplacer lors d’un import CSV dans une table
-- [x] Détection de doublons simples à l’import
-- [x] Collage multiple depuis Excel
-- [x] Collage multiple tolérant tabulation + point-virgule + virgule
-- [x] Reconnaissance des termes EN/FR en import/collage (catégorie, rareté, type, devise)
-- [x] Normalisation des catégories arme/armure vers les formes plurielles
-- [x] Barre flottante d’actions en édition de table (Enregistrer / Annuler)
-- [x] Bouton de remontée rapide en haut de page dans l’éditeur
-- [x] Correction d’encodage UTF-8 CSV
-- [x] Modal unique import/export (JSON/CSV)
-- [x] Mémorisation locale de l’UI
-- [x] Tirage configuré
-- [x] Tirage configuré avec bornes min/max (niveau, quantité, valeur en cuivre)
-- [x] Saisie manuelle inline des bornes min/max du roll (synchronisée sliders)
-- [x] Modes de probabilité étendus dans le roll
-- [x] Tirage rapide
-- [x] Historique local récent des tirages
-- [x] Intégration Owlbear SDK minimale
-- [x] Room metadata pour quelques états légers
-- [x] Broadcast d’un tirage validé
-- [x] Notification Owlbear à tous
-- [x] Modale Owlbear dédiée pour les gains
-- [x] Différenciation MJ / joueurs
-- [x] Côté joueur : pas d’actions de gestion
-- [x] Côté joueur : la modale de gain ne montre pas la valeur des objets
-- [x] Nom d’objet cliquable dans la modale de gain si URL présente
+### Import / export
+- Export JSON global
+- Export JSON par table
+- Export CSV par table
+- Import JSON global
+- Import JSON d’une table seule
+- Import JSON en nouvelle table
+- Import JSON dans une table existante avec mode ajouter/remplacer
+- Import CSV en nouvelle table
+- Import CSV dans une table existante avec mode ajouter/remplacer
+- Détection de doublons simples
+- Collage multiple depuis Excel
+- Séparateurs acceptés pour le collage : tabulation, `;`, `,`
+- Reconnaissance et normalisation de termes FR/EN pour catégories, raretés, types et devises
 
-### En cours
-- [ ] Finaliser le polish visuel du popover principal Owlbear maintenant que la base largeur/scroll/fond est en place
-- [ ] Valider en situation réelle Owlbear les derniers réglages de largeur dynamique, marges et alignements
+### Tirage
+- Tirage configuré
+- Tirage rapide avec mémorisation des derniers paramètres
+- Bornes min/max pour niveau, quantité et valeur en cuivre
+- Sliders synchronisés avec champs numériques manuels
+- Filtres par catégories
+- Gestion des doublons
+- Filtre magique PF2E
+- Plusieurs modes de probabilité
+- Pondération DnD 5e corrigée pour respecter le sens raretés basses / hautes
+- Historique local récent des tirages
 
-### À faire ensuite
-- [ ] Continuer le polish visuel de la vue principale
-- [ ] Éventuellement historique partagé des gains validés
-- [ ] Éventuellement améliorer encore la UI pour le format popover Owlbear
-- [ ] Éventuellement stockage lié à la scène plus tard
-- [ ] Éventuellement synchronisation plus riche MJ / joueurs
-- [ ] Plus tard : notes
-- [ ] Plus tard : tags supplémentaires
+### Internationalisation
+- Interface FR/EN
+- Provider i18n global
+- Préférence de langue persistée localement
+- Catégories, raretés, types et devises localisés
+- Notifications Owlbear et modales de gain compatibles FR/EN
+- La modale de gain reçoit explicitement `?lang=fr` ou `?lang=en` afin de respecter la langue du client qui l’ouvre
+- Le MJ et les joueurs peuvent utiliser des langues différentes dans une même room
 
-## Décisions techniques déjà validées
-Noter ici les choix qu’il ne faut pas re-discuter à chaque nouveau chat.
+### Partage Owlbear
+- `OBR.broadcast` utilisé pour les tirages validés
+- Plus d’abonnement aux room metadata pour cette mécanique
+- Le MJ reçoit sa modale localement
+- Les autres clients reçoivent le broadcast `validated-roll`
+- Le payload de la modale est conservé localement par room dans le navigateur
+- Taille de la modale de gain : environ `760 × 640`
 
-- Ne pas stocker les tables complètes dans les metadata de room Owlbear.
-- Garder les tables en stockage local navigateur.
-- Utiliser Owlbear seulement pour les états partagés légers et les tirages validés.
-- Toujours garder les exports JSON/CSV comme sécurité utilisateur.
-- Le flux validé est : tirage MJ → validation → room metadata + broadcast → notification + modale Owlbear chez tous.
-- Différenciation de rôle obligatoire :
-  - MJ : gestion complète + tirages + validation
-  - Joueur : consultation uniquement + réception du butin
-- Les modales de gain détaillées doivent être des vraies modales Owlbear, pas seulement des modales React internes au popover.
-- Les correctifs doivent être localisés et incrémentaux.
+## UX Owlbear actuelle
+- Popover principal configuré à **1150 × 950**
+- La largeur ne varie plus selon la vue
+- L’ancien mécanisme de mesure de largeur peut encore exister comme compatibilité dans le code, mais `setOwlbearPopoverWidth` ne redimensionne plus dynamiquement la fenêtre
+- Page principale centrée avec marges gauche/droite symétriques
+- Bouton Paramètres placé sur la même ligne visuelle que le titre
+- Pas de scrollbar horizontale inutile sur la page principale
+- Les aperçus larges et l’éditeur peuvent provoquer un scroll horizontal au niveau de la fenêtre principale Owlbear
+- Scroll vertical également géré au niveau de la fenêtre principale
+- Scrollbars personnalisées pour correspondre au thème sombre de Loot Tables
+- L’éditeur réserve une largeur suffisante à la colonne Actions afin que les boutons restent entièrement dans le fond de chaque ligne
+- Validation d’un tirage simplifiée : la fenêtre Résultat se ferme automatiquement après validation
+- La confirmation redondante `Information — Tirage validé et partagé à tous` n’est plus affichée ; la modale `Butin partagé` sert de confirmation visuelle
 
-## État actuel précis
-Décrire où on en est exactement au moment de reprendre.
+## Architecture actuelle
+### `public/manifest.json`
+- Manifest Owlbear
+- Version de release
+- Action principale vers GitHub Pages
+- Dimensions du popover : `1150 × 950`
 
-L’extension est globalement fonctionnelle et jouable.
-Le déploiement GitLab Pages est réglé et le manifest Owlbear fonctionne.
-Les fonctionnalités cœur (tables, imports, tirages, validation, partage) sont en place.
-Le popover principal a beaucoup avancé :
-- le `#root` et le `body` distinguent maintenant explicitement la vue popover principale et la vue modale de gain
-- la largeur du popover est maintenant recalculée dynamiquement à partir de la largeur réelle du contenu principal
-- la largeur minimale fixe du conteneur principal a été retirée
-- les marges gauche/droite ont été rééquilibrées pour éviter que le contenu colle au bord droit
-- la barre recherche/tri, les cartes de table et le footer secondaire partagent désormais une largeur utile cohérente
-- le footer secondaire a été restructuré sur deux lignes pour mieux tenir dans le popover
-- la grille de lecture des objets a été resserrée, alignée à gauche, et la colonne montant/devise a été fusionnée
-- les boutons de lancement rapide et de lancer sont remontés dans la ligne d’actions principale des tables
+### `public/store.md`
+- Fiche utilisée par le store officiel Owlbear
+- Front matter avec titre, description, auteur, image, icône, tags, manifest et learn-more
+- Les images/GIF de la partie visible utilisent des URL absolues pour une meilleure compatibilité avec le store
 
-Depuis la dernière mise à jour, le périmètre fonctionnel a encore évolué :
-- internationalisation FR/EN branchée à l’échelle de l’application (sélecteur + textes localisés)
-- terminologie de jeu contextualisée selon système/langue (PF2E vs DND5E)
-- roll enrichi avec bornes min/max (niveau, quantité, valeur cuivre), modes de probabilité supplémentaires et bornes automatiques dérivées de la table
-- champs manuels min/max ajoutés en complément des sliders pour un réglage précis
-- sélecteurs système/langue déplacés dans une modal Paramètres (engrenage), avec boutons visuels
-- drapeaux de langue passés sur des assets SVG explicites (plus robustes que le rendu emoji selon plateforme)
-- mode édition de table amélioré avec actions flottantes persistantes + bouton de remontée rapide
-- correction appliquée sur la pondération de rareté DND5E pour réaligner le comportement “raretés basses/hautes” avec les intitulés des modes
-- devises localisées selon langue/système, avec exclusion de `pe/ep` pour PF2E
-- import/collage rendu plus permissif et robuste (FR+EN, séparateurs multiples)
-- normalisation automatique des catégories/raretés/types pour réduire les incohérences de données
+### `src/main.tsx`
+- Point d’entrée
+- Attend que le SDK Owlbear soit prêt
+- Configure le popover principal
+- Détecte `?view=gain-modal`
+- Ajoute `data-view` à `html`, `body` et `#root`
+- Charge `src/obr-shell.css`
 
-Le sujet encore ouvert n’est plus une refonte du comportement global, mais un polish visuel ciblé du popover principal dans Owlbear :
-- vérifier que la largeur dynamique reste agréable selon les cas réels
-- vérifier les derniers alignements visuels entre header, cartes, footer et marges
-- éviter toute régression sur le scroll global et le fond principal
+### `src/App.tsx`
+- État principal de l’application
+- Tables, recherche, tri, import/export, système, langue, tirages, historique
+- Gestion rôle MJ/joueur
+- Validation et partage des tirages
+- Fenêtre Paramètres et News
+
+### `src/owlbear.ts`
+- Initialisation SDK
+- Configuration taille/titre du popover
+- Lecture room, rôle et nom du joueur
+- Notifications Owlbear
+- État local associé à la room
+- Broadcast des tirages validés
+- Abonnement au channel de broadcast
+- Ouverture/fermeture de la modale de gain
+- Ne doit plus utiliser les room metadata pour le partage des tirages validés
+
+### `src/obr-shell.css`
+- Couche spécifique au rendu Owlbear
+- Taille et overflow du shell principal
+- Scrollbars intégrées au thème
+- Marges et centrage de la page principale
+- Position du bouton Paramètres
+- Passage du scroll horizontal au niveau de la fenêtre principale pour les vues larges
+- Ajustements de l’éditeur et de la colonne Actions
+
+### `src/components/TableList.tsx`
+- Liste des tables
+- Recherche/tri
+- Cartes de tables
+- Aperçu des objets
+- Actions MJ
+- Tirage rapide et tirage configuré
+
+### `src/components/TableEditor.tsx`
+- Création/modification d’une table
+- Lignes d’objets
+- Collage multiple
+- Actions horizontales par ligne
+- Barre flottante Enregistrer/Annuler/Remonter en haut
+
+### `src/components/RollDialog.tsx`
+- Configuration complète du tirage
+- Bornes, sliders, filtres et probabilités
+
+### `src/components/ResultDialog.tsx`
+- Résultat local du tirage MJ
+- Validation, relance, copie, historique
+- Se ferme après validation réussie
+
+### `src/components/SharedGainPage.tsx`
+- Vue active de la vraie modale Owlbear de gain
+- Lit le dernier payload validé dans l’état local de la room du navigateur
+- Affichage localisé
+- Différencie MJ/joueur
+
+### `src/components/GainModal.tsx`
+- Ancien composant de gain conservé et localisé
+- Ne constitue pas le flux principal actuel de partage
+
+### `src/i18n/`
+- `index.tsx` : provider/hook
+- `locales/fr.ts` et `locales/en.ts` : traductions UI + News
+- `gameTerms.ts` : mapping catégories, raretés, types, devises et options par système
+
+### `src/utils/storage.ts`
+- Stockage local des tables et état UI
+- Imports/exports JSON/CSV
+- Normalisation des données
+- Séparation PF2E / DnD 5e
+
+### `src/utils/loot.ts`
+- Filtres et sélection des objets
+- Pondérations/probabilités
+- Logique de tirage
+
+## Publication Owlbear officielle
+- Dépôt officiel du store : `owlbear-rodeo/extensions`
+- PR : `#139 Add Loot Tables extension`
+- Branche source utilisée : `thp21000/extensions:add-loot-tables-extension`
+- Entrée ajoutée à `extensions.json` :
+  - clé : `loot-tables`
+  - valeur : `https://raw.githubusercontent.com/thp21000/loot-tables-for-OBR/main/public/store.md`
+- PR fusionnée le **2026-08-26**
+- L’extension est donc officiellement disponible via le store des extensions Owlbear Rodeo
+
+## Points de vigilance actuels
+- Les tables restent locales : toujours rappeler l’importance des exports JSON de sauvegarde
+- Tester après chaque retouche CSS dans Owlbear réel, car le rendu dépend de l’iframe/popover de la plateforme
+- Éviter de réintroduire du redimensionnement dynamique du popover
+- Ne pas recréer de scrollbars horizontales internes en bas des longues listes ; le scroll horizontal doit rester rattaché à la fenêtre principale quand nécessaire
+- Préserver les boutons d’action de l’éditeur sur une seule ligne et entièrement à l’intérieur de la ligne d’objet
+- Continuer à tester FR/EN avec MJ et joueur dans des langues différentes
+
+## Prochaines évolutions possibles
+- Historique partagé plus riche des gains validés
+- Stockage éventuellement lié à la scène pour certaines fonctions futures
+- Synchronisation MJ/joueurs plus riche si un besoin concret apparaît
+- Notes et tags supplémentaires
+- Nouveaux packs de tables prêts à l’emploi
+- Continuer les améliorations UX uniquement à partir de retours utilisateurs réels
 
 ## Journal de session
+
 ### Session du 2026-03-16
-- sujets traités :
-  - Mise en place de l’extension Owlbear Loot Tables
-  - Déploiement GitLab Pages
-  - Correction des pipelines GitLab
-  - Création/édition/import/export/tirage des tables
-  - Tirage rapide
-  - Amélioration des imports CSV/Excel
-  - Intégration SDK Owlbear
-  - Validation du tirage et partage à tous
-  - Différenciation MJ / joueurs
-  - Mise en place d’une vraie modale Owlbear de gain
-  - Début de polish UI du popover principal
-- fichiers modifiés :
-  - `.gitlab-ci.yml`
-  - `public/manifest.json`
-  - `public/icon.svg`
-  - `README.md`
-  - `src/main.tsx`
-  - `src/App.tsx`
-  - `src/types.ts`
-  - `src/owlbear.ts`
-  - `src/utils/storage.ts`
-  - `src/utils/loot.ts`
-  - `src/components/TableList.tsx`
-  - `src/components/TableEditor.tsx`
-  - `src/components/RollDialog.tsx`
-  - `src/components/ResultDialog.tsx`
-  - `src/components/ConfirmModal.tsx`
-  - `src/components/SharedGainPage.tsx`
-  - `src/components/GainModal.tsx` (existe/servait pendant une phase intermédiaire ; la vraie modale finale passe par `SharedGainPage`)
-- décisions prises :
-  - stockage local conservé pour les tables
-  - sauvegarde recommandée via README
-  - vraie modale Owlbear pour les gains
-  - rôles MJ/joueur distincts
-  - bouton de validation de tirage conservé côté MJ
-- problèmes restants :
-  - largeur réelle du popover principal
-  - scroll horizontal/vertical global
-  - fond noir principal à ajuster selon la largeur réelle
-- prochaine action utile :
-  - reprendre le travail sur `src/App.tsx` et éventuellement `src/styles/ui.ts` pour stabiliser définitivement le conteneur principal du popover
+- Mise en place du socle de l’extension Owlbear
+- Création/édition/import/export/tirage
+- Intégration SDK et différenciation MJ/joueur
+- Mise en place des premiers mécanismes de validation et partage
+- Premières itérations sur la vraie modale Owlbear de gain et le layout du popover
 
 ### Session du 2026-03-18
-- sujets traités :
-  - Stabilisation incrémentale du layout du popover principal Owlbear
-  - Unification des largeurs utiles entre la barre recherche/tri, les cartes de tables et le footer secondaire
-  - Réduction de la densité horizontale de la vue de lecture des objets
-  - Fusion de l’affichage montant + devise dans la vue de consultation
-  - Déplacement des boutons de lancement rapide / lancer dans la ligne d’actions principale
-  - Redimensionnement dynamique du popover principal en fonction de la largeur réelle du contenu
-  - Rééquilibrage des marges latérales du popover
-- fichiers modifiés :
-  - `src/App.tsx`
-  - `src/owlbear.ts`
-  - `src/main.tsx`
-  - `src/index.css`
-  - `src/components/TableList.tsx`
-  - `src/components/TableEditor.tsx`
-- décisions prises :
-  - conserver l’approche incrémentale par petites touches sur le layout
-  - garder un redimensionnement dynamique du popover basé sur la largeur réelle du contenu
-  - garder une petite marge de sécurité à droite du popover pour l’aération visuelle
-  - garder une largeur partagée entre la barre de recherche/tri, la liste des tables et le footer secondaire
-  - garder le footer secondaire en deux lignes plutôt que de forcer une seule ligne trop longue
-- problèmes restants :
-  - vérifier dans Owlbear le comportement réel du popover selon plusieurs états d’interface
-  - finir le polish visuel des espacements et alignements fins
-- prochaine action utile :
-  - vérifier en situation réelle Owlbear les derniers réglages de largeur dynamique et corriger uniquement les derniers écarts visuels constatés
+- Stabilisation incrémentale du layout
+- Alignement recherche/tri, cartes et footer
+- Réduction de la densité de la vue objets
+- Premiers travaux de redimensionnement du popover selon le contenu
 
 ### Session du 2026-03-24
-- sujets traités :
-  - Ajout du support multi-systèmes (PF2E / DND5E)
-  - Séparation des clés de stockage local par système
-  - Évolution des types de données (système sur table, type sur item)
-  - Unification des flux d’import/export dans une modal dédiée
-  - Mise à jour des formats CSV selon le système
-  - Ajustements UI/layout liés au nouveau flux de transfert
-- fichiers modifiés :
-  - `PROJECT_CONTEXT.md`
-  - `README.md`
-  - `src/App.tsx`
-  - `src/components/TableEditor.tsx`
-  - `src/components/TableList.tsx`
-  - `src/main.tsx`
-  - `src/owlbear.ts`
-  - `src/types.ts`
-  - `src/utils/loot.ts`
-  - `src/utils/storage.ts`
-  - `src/index.css`
-- décisions prises :
-  - Conserver une logique de stockage local mais cloisonnée par système de jeu
-  - Centraliser import/export dans une seule modal pour réduire la complexité perçue
-  - Garder un CSV simple et explicite, avec colonnes dépendantes du système
-- problèmes restants :
-  - Vérifier en tests utilisateurs la compréhension du changement de système (risque de confusion si les tables “disparaissent” lors d’un switch)
-  - Continuer le polish visuel final dans le popover Owlbear
+- Ajout PF2E / DnD 5e
+- Séparation du stockage par système
+- Évolution du modèle de données
+- Centralisation import/export dans une modal dédiée
+- Adaptation des formats CSV
 
 ### Session du 2026-03-25
-- sujets traités :
-  - Intégration i18n complète (provider + dictionnaires FR/EN + branchement UI)
-  - Ajout du mapping des termes de jeu selon système/langue
-  - Évolution du roll vers des bornes min/max (niveau, quantité, valeur cuivre)
-  - Ajout de modes de probabilité supplémentaires
-  - Ajout des bornes automatiques calculées depuis la table + saisie manuelle inline des min/max
-  - Mise à jour de la documentation utilisateur et du contexte projet
-- fichiers modifiés :
-  - `PROJECT_CONTEXT.md`
-  - `README.md`
-  - `src/App.tsx`
-  - `src/components/ResultDialog.tsx`
-  - `src/components/RollDialog.tsx`
-  - `src/components/SharedGainPage.tsx`
-  - `src/components/TableEditor.tsx`
-  - `src/components/TableList.tsx`
-  - `src/i18n/index.tsx`
-  - `src/i18n/gameTerms.ts`
-  - `src/i18n/locales/fr.ts`
-  - `src/i18n/locales/en.ts`
-  - `src/index.css`
-  - `src/main.tsx`
-  - `src/owlbear.ts`
-  - `src/types.ts`
-  - `src/utils/loot.ts`
-  - `src/utils/storage.ts`
-- décisions prises :
-  - Conserver FR comme langue par défaut, avec bascule utilisateur explicite vers EN
-  - Garder les bornes automatiques du roll comme valeur de départ, tout en autorisant un override manuel précis
-  - Continuer à privilégier des itérations UI localisées sans refonte globale
-- problèmes restants :
-  - Finaliser la relecture terminologique FR/EN sur quelques libellés métier
-  - Confirmer en usage Owlbear réel le confort du roll avancé sur petits popovers
+- Mise en place de l’i18n FR/EN
+- Mapping localisé des termes de jeu
+- Évolution du roll vers des bornes min/max
+- Ajout des modes de probabilité et saisies manuelles synchronisées avec sliders
 
 ### Session du 2026-03-26
-- sujets traités :
-  - Déplacement des sélecteurs système/langue vers une modal Paramètres accessible via un bouton engrenage
-  - Remplacement des drapeaux emoji par de vraies icônes de drapeau SVG dans les boutons de langue
-  - Ajout d’une barre d’actions flottante en édition de table (Enregistrer / Annuler)
-  - Ajout d’un bouton de remontée rapide en haut de page dans l’éditeur
-  - Traduction des devises à l’affichage selon langue active (FR/EN)
-  - Restriction des devises proposées selon système de jeu (PF2E sans pe/ep)
-  - Reconnaissance directe des valeurs EN dans import/collage (category/rarity/type/currency)
-  - Normalisation des catégories doublons “Arme/Armes” et “Armure/Armures” vers pluriel
-  - Renforcement du collage multiple pour accepter tabulation, `;`, `,`
-  - Correction d’affichage EN des catégories dans `RollDialog` via le mapping centralisé `gameTerms`
-  - Harmonisation de la logique de traduction : `RollDialog` référence désormais la même source que `TableList` / `TableEditor` (pas de mapping local dupliqué)
-  - Amélioration de la robustesse du mapping de `gameTerms` (comparaison tolérante aux accents / apostrophes / séparateurs) pour mieux couvrir les variantes importées
-  - Ajustement de l’aperçu de valeur dans `RollDialog` : affichage en équivalences complètes (`pp / po / pe / pa` en DND5E, `pp / po / pa` en PF2E) au lieu d’une décomposition additive
-- fichiers modifiés :
-  - `PROJECT_CONTEXT.md`
-  - `src/App.tsx`
-  - `src/components/TableEditor.tsx`
-  - `src/components/TableList.tsx`
-  - `src/components/ResultDialog.tsx`
-  - `src/components/SharedGainPage.tsx`
-  - `src/components/RollDialog.tsx`
-  - `src/i18n/locales/fr.ts`
-  - `src/i18n/locales/en.ts`
-  - `src/i18n/gameTerms.ts`
-  - `src/assets/flag-fr.svg`
-  - `src/assets/flag-gb.svg`
-  - `src/utils/storage.ts`
-- décisions prises :
-  - Conserver les préférences de système/langue dans une modal dédiée pour alléger la barre d’actions principale
-  - Utiliser des drapeaux SVG pour garantir un rendu cohérent des icônes de langue selon OS/navigateurs
-  - Garder les actions critiques d’édition toujours visibles pour éviter les validations ratées en bas de page
-- problèmes restants :
-  - Vérifier en conditions Owlbear réelles que la barre flottante n’empiète pas sur certaines zones interactives
-  - Ajuster au besoin l’espacement mobile/popover très étroit si overlap sur petits écrans
-  - Garder un format canonique interne FR pour les données, tout en acceptant la saisie/import EN en entrée
-  - Normaliser les catégories arme/armure en pluriel pour éviter les doublons visuels et de tri
-  - Rendre le collage plus permissif sans casser le format tabulé initial
-- problèmes restants :
-  - Vérifier en import utilisateurs réels des fichiers CSV hétérogènes (quoting, accents, colonnes partiellement traduites)
-  - Continuer la validation Owlbear réelle (popover + overlays flottants) sur diverses tailles d’écran
+- Déplacement système/langue dans Paramètres
+- Drapeaux SVG
+- Barre flottante d’édition
+- Traduction des devises
+- Normalisation FR/EN des imports et collage multiple plus permissif
 
-  ### Session du 2026-03-27
-- sujets traités :
-  - Livraison du lot multi-systèmes PF2E/DND5E (modèle de données + stockage + adaptation UI)
-  - Intégration i18n FR/EN (provider, locales, mapping des termes métier)
-  - Refonte import/export (modal unifiée, CSV adaptés par système, normalisation FR/EN, collage multi-séparateurs)
-  - Évolution du roll avancé (bornes min/max niveau/quantité/valeur, sliders, champs manuels, modes étendus)
-  - Stabilisation UI Owlbear (mesure de largeur utile + redimensionnement dynamique popover)
-- fichiers modifiés :
-  - `src/App.tsx`
-  - `src/components/TableList.tsx`
-  - `src/components/TableEditor.tsx`
-  - `src/components/RollDialog.tsx`
-  - `src/components/ResultDialog.tsx`
-  - `src/components/SharedGainPage.tsx`
-  - `src/utils/storage.ts`
-  - `src/utils/loot.ts`
-  - `src/types.ts`
-  - `src/i18n/index.tsx`
-  - `src/i18n/gameTerms.ts`
-  - `src/i18n/locales/fr.ts`
-  - `src/i18n/locales/en.ts`
-  - `src/owlbear.ts`
-  - `src/main.tsx`
-  - `src/index.css`
-  - `README.md`
-  - `PROJECT_CONTEXT.md`
-- décisions prises :
-  - Garder les données de tables en local, séparées par système de jeu
-  - Centraliser les transferts (import/export) dans une modal dédiée pour simplifier le flux utilisateur
-  - Conserver l’approche itérative sur le layout Owlbear (ajustements ciblés plutôt que refonte)
-- points de vigilance :
-  - Vérifier avec des fichiers utilisateurs réels la robustesse de la normalisation FR/EN (catégories, raretés, types, devises)
-  - Continuer la validation du rendu popover en situation Owlbear réelle (tailles et densités variées)
+### Session du 2026-03-27
+- Consolidation multi-systèmes + i18n + import/export
+- Stabilisation des composants de tirage et du layout Owlbear
 
-  ### Session du 2026-03-28
-- sujets traités :
-  - Correction du sens de pondération des probabilités DND5E dans `utils/loot` pour réaligner les modes low/high avec leur intention fonctionnelle
-  - Recalibrage des puissances DND5E (`soft`/`strong`) pour conserver une différence de comportement lisible en utilisation réelle
-  - Mise à jour de la documentation projet/utilisateur en conservant la structure existante des documents
-- fichiers modifiés :
-  - `src/utils/loot.ts`
-  - `README.md`
-  - `PROJECT_CONTEXT.md`
-- décisions prises :
-  - Conserver le modèle de probabilité existant mais corriger uniquement la direction des distances de rareté côté DND5E
-  - Garder une mise à jour documentaire incrémentale, sans réorganisation lourde des sections déjà en place
-- points de vigilance :
-  - Revalider en test manuel les modes “raretés basses” / “raretés hautes” en DND5E pour confirmer le ressenti attendu
-  - Continuer à documenter les changements par date dans ce journal pour faciliter les reprises de contexte
+### Session du 2026-03-28
+- Correction du sens des pondérations de rareté DnD 5e
+- Recalibrage des modes soft/strong
 
 ### Session du 2026-05-18
-- sujets traités :
-  - Correction de l’import JSON qui refusait certains fichiers pourtant générés par l’addon
-  - Acceptation des exports JSON d’une table seule en plus des exports JSON globaux sous forme de tableau
-  - Ajout du format JSON dans la portée d’import “table précise”
-  - Ajout de l’import JSON dans une table existante avec les mêmes modes ajouter/remplacer que l’import CSV
-  - Vérification du flux “nouvelle table” en JSON pour qu’un export d’une table puisse bien recréer une table indépendante
-- fichiers modifiés :
-  - `src/utils/storage.ts`
-  - `src/App.tsx`
-  - `src/i18n/locales/fr.ts`
-  - `src/i18n/locales/en.ts`
-  - `PROJECT_CONTEXT.md`
-- décisions prises :
-  - Garder `importTablesFromFile` comme point d’entrée commun des imports JSON, mais le rendre compatible avec les deux formes produites par l’addon : tableau de tables et table unique
-  - Réutiliser la logique existante de dédoublonnage et de remplacement/ajout pour les imports JSON dans une table précise, afin d’éviter deux comportements différents entre CSV et JSON
-  - Renommer le libellé “mode d’import CSV” en “mode d’import”, car il s’applique maintenant aussi au JSON dans une table précise
-- points de vigilance :
-  - Retester manuellement les trois portées JSON : global, nouvelle table, table précise
-  - Vérifier que les imports JSON inter-systèmes gardent le comportement attendu avec le système actuellement sélectionné dans l’UI
-  - Conserver les exports JSON réguliers comme recommandation principale de sauvegarde utilisateur
+- Correction de l’import JSON
+- Acceptation des exports d’une table seule et des exports globaux
+- Import JSON dans une table précise avec ajouter/remplacer
+- Réutilisation du dédoublonnage commun CSV/JSON
 
-## Règles à respecter
-- Toujours donner le fichier complet patcher.
-- Ne pas repartir de zéro ni proposer une refonte totale sans raison.
-- Conserver les décisions validées ci-dessus.
-- Prioriser les correctifs ciblés et concrets.
-- Vérifier que les changements ne cassent pas la logique Owlbear déjà fonctionnelle.
-- Ne pas remettre en question le choix de stockage local des tables.
-- Penser à la compatibilité MJ / joueurs à chaque changement d’UI.
+### Session du 2026-08-25
+- sujets traités :
+  - Reprise de la soumission de Loot Tables au store officiel Owlbear Rodeo
+  - Vérification de la documentation officielle `Showcase your Extension`
+  - Vérification de la structure de `public/store.md` et décision de conserver une fiche store relativement concise, le README restant la documentation détaillée et maintenue
+  - Fork de `owlbear-rodeo/extensions`, ajout de l’entrée `loot-tables` dans `extensions.json` et préparation de la PR vers `owlbear-rodeo/extensions:main`
+  - Relecture de la PR et vérification de la règle de soumission avec un commit côté PR store
+  - Analyse des retours reviewer sur l’utilisation des room metadata et sur les incohérences de langue
+  - Correction du partage des tirages validés pour privilégier `OBR.broadcast` et supprimer la dépendance aux room metadata dans ce flux
+  - Correction FR/EN des notifications et des modales de gain, y compris lorsqu’un MJ et un joueur utilisent des langues différentes
+  - Validation des tests FR/EN dans Owlbear
+  - Passage à la release intermédiaire 0.1.90 avec News correspondantes
+- décisions prises :
+  - Un tirage validé est un événement éphémère et doit être diffusé via `OBR.broadcast`
+  - Le dernier payload nécessaire à la modale reste local au navigateur/room
+  - La langue de la modale doit être déterminée côté client receveur, pas imposée par la langue du MJ
+  - `store.md` n’a pas vocation à remplacer le README comme documentation utilisateur détaillée
+
+### Session du 2026-08-26
+- sujets traités :
+  - Prise en compte du retour UX du reviewer Owlbear visant à réduire les modales/popovers et stabiliser les dimensions de l’interface
+  - Simplification du flux de validation : fermeture automatique de `Résultat du tirage` après validation
+  - Suppression de la confirmation redondante `Information — Tirage validé et partagé à tous`
+  - Conservation de `Butin partagé` comme confirmation visuelle utile du partage
+  - Stabilisation du popover principal à `1150 × 950`
+  - Stabilisation de la modale de gain à environ `760 × 640`
+  - Abandon effectif du redimensionnement dynamique de largeur pendant les interactions
+  - Création de `src/obr-shell.css` pour centraliser les adaptations spécifiques Owlbear
+  - Ajout de scrollbars horizontales/verticales intégrées au thème sombre
+  - Passage du défilement horizontal des aperçus/éditeur vers la fenêtre principale Owlbear pour éviter une scrollbar située tout en bas d’une longue table
+  - Conservation d’aucune scrollbar horizontale sur la page principale quand elle n’est pas nécessaire
+  - Rééquilibrage des marges gauche/droite de la page principale
+  - Déplacement visuel du bouton Paramètres sur la même ligne que le titre pour gagner de la hauteur
+  - Correction des cartes `width: 100%` avec `box-sizing: border-box` afin d’éviter les dépassements de quelques pixels
+  - Passage des boutons d’action des lignes d’éditeur en disposition horizontale
+  - Corrections successives de la colonne Actions afin que les boutons restent entièrement à l’intérieur du fond de chaque ligne
+  - Passage des URLs d’images de `store.md` vers des URL absolues
+  - Fusion de la PR officielle `owlbear-rodeo/extensions#139` : Loot Tables est désormais publié dans le store officiel Owlbear
+  - Passage du manifest à **0.2.00**
+  - Mise à jour des 4 lignes de News FR/EN pour annoncer la release 0.2.00, la publication store et les améliorations UX
+  - Mise à jour complète de ce `PROJECT_CONTEXT.md`
+- principaux commits de la journée avant la release 0.2.00 :
+  - `6d2f915` — Reduce redundant validation modal
+  - `bdec48d` — Streamline roll validation flow
+  - `ab9619f` — Stabilize Owlbear window sizes
+  - `3a3e003` — Add fixed popover shell styles
+  - `8bcd904` — Style fixed Owlbear shell and scrollbars
+  - `a6198ee` — Enforce fixed Owlbear action size
+  - `23e2523` — Use window-level scrolling and horizontal row actions
+  - `118d4b6` — Polish main popover layout
+  - `978d061` — Keep editor action buttons inside rows
+  - `5c85841` — Reserve full width for editor action column
+- décisions prises :
+  - La taille du popover principal doit rester constante entre les interactions
+  - Le scroll horizontal ne doit apparaître que lorsque le contenu le nécessite
+  - Le scroll horizontal des longues vues doit être attaché à la fenêtre principale, pas au bas d’un bloc interne
+  - Les actions de ligne doivent rester compactes, horizontales et entièrement contenues
+  - Les retours UX du store peuvent être intégrés même lorsqu’ils ne sont pas obligatoires s’ils améliorent clairement le confort général
+
+## Règles à respecter pour les prochaines sessions
+- Lire ce fichier comme source principale de vérité avant toute modification importante
+- Ne pas repartir de zéro
+- Conserver le stockage local des tables sauf décision explicite contraire
+- Ne pas réintroduire les room metadata pour diffuser les tirages validés
+- Ne pas réintroduire le redimensionnement dynamique du popover principal
+- Tester les changements FR/EN et MJ/joueur quand ils touchent au partage
+- Préserver la sauvegarde/import/export existante
+- Continuer par correctifs ciblés et incrémentaux
+- Après une session importante, ajouter une entrée datée au Journal de session
 
 ## Prompt de reprise recommandé
-À coller au début d’un nouveau chat :
-
-Contexte : lis le PROJECT_CONTEXT.md ci-dessous comme source principale de vérité.
+Contexte : lis `PROJECT_CONTEXT.md` comme source principale de vérité.
 Je veux reprendre le projet sans repartir de zéro.
-Considère que les décisions techniques déjà notées sont validées.
-Aide-moi de façon concrète et incrémentale, en évitant les refontes inutiles.
-Le dernier sujet ouvert est la stabilisation de l’interface principale du popover Owlbear (largeur réelle, scroll global, fond principal), sans casser les fonctionnalités déjà en place.
+Considère les décisions techniques déjà notées comme validées.
+Travaille de façon concrète et incrémentale, en évitant les refontes inutiles.
+La version de référence est 0.2.00, publiée officiellement dans le store Owlbear, avec popover principal fixe, partage des tirages via Broadcast et interface FR/EN stabilisée.
