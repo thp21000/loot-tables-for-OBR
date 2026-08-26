@@ -73,10 +73,16 @@ export async function configureOwlbearAction(): Promise<void> {
 }
 
 export async function setOwlbearPopoverWidth(width: number): Promise<void> {
-  // Kept for compatibility with the current layout observer in App.tsx.
-  // The action popover now has a fixed size to avoid growing and shrinking
-  // while navigating between the list, editor and roll views.
+  // App.tsx still measures its content. Ignore the measured width and
+  // re-assert the fixed Owlbear action dimensions instead.
   void width;
+
+  try {
+    await OBR.action.setWidth(ACTION_POPOVER_WIDTH);
+    await OBR.action.setHeight(ACTION_POPOVER_HEIGHT);
+  } catch (error) {
+    console.error("Impossible de stabiliser la taille du popover Owlbear :", error);
+  }
 }
 
 export async function getOwlbearRoomId(): Promise<string | null> {
