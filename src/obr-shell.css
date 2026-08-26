@@ -1,0 +1,107 @@
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: #111214;
+}
+
+body[data-view="main-popover"] {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body[data-view="gain-modal"] {
+  overflow: hidden;
+}
+
+#root[data-view="main-popover"] {
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+/* Keep the React application constrained to the fixed Owlbear action width. */
+#root[data-view="main-popover"] > div {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* App.tsx currently uses max-content for its main content wrapper.
+   Override that only at the shell level so wide tables scroll inside the
+   fixed popover instead of making the action itself appear wider. */
+#root[data-view="main-popover"] > div > div:first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* The table/list area should use the available window width on the main page. */
+#root[data-view="main-popover"] > div > div:first-child > div:last-child {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+}
+
+#root[data-view="main-popover"] > div > div:first-child > div:last-child > div:first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+}
+
+#root[data-view="gain-modal"] {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+/* Scrollbars integrated with the Loot Tables dark theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #181a1f;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #181a1f;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border: 2px solid #181a1f;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: #1d4ed8;
+}
+
+*::-webkit-scrollbar-corner {
+  background: #111214;
+}
