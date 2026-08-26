@@ -117,8 +117,17 @@ body[data-view="gain-modal"] {
   overflow-x: visible !important;
 }
 
-/* TableEditor action cells are the final cell of grid rows. Keep their
-   controls on one horizontal line so a row does not become unnecessarily tall. */
+/* TableEditor rows need enough intrinsic width for their final Actions column.
+   Without this, the fixed columns consume the whole visible width and the
+   action buttons spill outside the row background. The main Owlbear window
+   already owns horizontal scrolling, so letting editor rows be a little wider
+   keeps all controls visually inside their row. */
+#root[data-view="main-popover"] [style*="min-width: 980px"] {
+  min-width: 1200px !important;
+}
+
+/* Keep the editor action controls on one horizontal line and inside the final
+   grid column. */
 #root[data-view="main-popover"] div[style*="display: grid"] > div:last-child:has(> button) {
   display: flex !important;
   flex-direction: row !important;
@@ -126,7 +135,14 @@ body[data-view="gain-modal"] {
   justify-content: center !important;
   align-items: center !important;
   gap: 8px !important;
-  min-width: max-content !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+#root[data-view="main-popover"] div[style*="display: grid"] > div:last-child:has(> button) > button {
+  flex: 0 0 auto !important;
 }
 
 #root[data-view="gain-modal"] {
